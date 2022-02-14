@@ -12,6 +12,7 @@ app.use( express.json() );
 
 // Rutas
 app.use('/api/login', require('./routes/login') );
+app.use('/api/categorias', require('./routes/categorias') );
 
 app.listen(process.env.PORT, ()=>{
     console.log("server OK: "+process.env.PORT);

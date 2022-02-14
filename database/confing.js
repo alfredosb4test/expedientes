@@ -7,6 +7,7 @@ const conf = {
     user: process.env.userDB,
     password: process.env.password,
     database: process.env.database,
+    connectionLimit: process.env.connectionLimit
   },
   listPerPage: 10,
 };
