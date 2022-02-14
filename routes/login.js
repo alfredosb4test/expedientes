@@ -11,7 +11,7 @@ router.get('/', test);
 router.post('/', 
             [ 
                cors({ origin: true }),
-               body('usuario', 'El email es obligatorio').not().isEmpty(),
+               body('usuario', 'El usuario es obligatorio').not().isEmpty(),
                body('pwd', 'El password es obligatorio').not().isEmpty(),
                body('pwd', 'El password debe tener al menos 3 caracteres').isLength({ min: 3 }),
                

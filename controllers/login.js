@@ -1,20 +1,19 @@
 const { response } = require("express"); 
 const getConnection = require('../database/mssql');
-const { base64encode } = require('nodejs-base64');
+var md5 = require('md5');
 const { generarJWT } = require("../helpers/jwt");
 
-const getLogin = async (req, resp = response ) =>{
+const getLogin = (req, resp = response ) =>{
 
-    const { usuario, pwd } = req.body; 
-
-   try{ 
-      let decoded = base64encode(pwd);
-      const pool = await getConnection();
-      const result = await pool.request().query(`select * from cusuario where usuario='${usuario}' AND contrasena = '${decoded}'`)
-      .then( async result => {
-         const { recordset } = result;
-
-         if( !result.rowsAffected[0] ){
+   const { usuario, pwd } = req.body;  
+   const pwwdMD5 = md5(pwd); 
+   try{  
+      $sql = `select * from usuarios where usuario=? AND clave = ?`;
+      const result = getConnection.query($sql, [usuario, pwwdMD5])
+      .then( async ([rows,fields]) => {
+         console.log('row:',rows);
+         console.log('fields:',fields);
+         if( !rows ){
             return resp.status(404).json({
                ok: false,
                msg: 'Usuario no encontrado'
@@ -22,18 +21,21 @@ const getLogin = async (req, resp = response ) =>{
          }
  
          const token = await generarJWT( { 
-            id: result.recordset[0].usuarioid,
-            usuario: result.recordset[0].usuario,
-         })
+            id: rows.id,
+            usuario: rows.usuario,
+            n_acceso: rows.n_acceso,
+         });
+     
          console.log( token );
-         result.recordset[0].contrasena = '???';
+         rows.clave = '???';
          resp.json({ 
             ok: true,
-            usuario: result.recordset[0],
+            usuario: rows,
             token
          });
+          
+
       });
-      
    }catch( error ){
       console.log(error);
    }
@@ -41,31 +43,30 @@ const getLogin = async (req, resp = response ) =>{
 
 
 const renewToken = async( req, resp = response ) =>{
-   const uid = req.uid; 
+   const id = req.id; 
+ 
+   console.log('renewToken', id);
+   const result = await getConnection.query(`select * from usuarios where id=${id} `)
+   .then( async ([rows,fields]) => {
 
-   const pool = await getConnection();
-   console.log('renewToken', uid);
-   const result = await pool.request().query(`select * from cusuario where usuarioid='${uid}' `)
-   .then( async result => {
-      const { recordset } = result;
-
-      if( !result.rowsAffected[0] ){
+      if( !rows ){
          return resp.status(404).json({
             ok: false,
-            msg: 'Usuario no encontrado'
-         })
+            msg: 'error con el token'
+         });
       }
       // delete result.recordset[0].contrasena;
-      result.recordset[0].contrasena = '???';
+      rows.clave = '???';
       //console.log( result.recordset[0].usuarioid );
       const token = await generarJWT( { 
-         id: result.recordset[0].usuarioid,
-         usuario: result.recordset[0].usuario,
-      })
+         id: rows.id,
+         usuario: rows.usuario,
+         n_acceso: rows.n_acceso,
+      });
       
       resp.json({ 
          ok: true,
-         usuario: result.recordset[0],
+         usuario: rows,
          token
       });
    });
@@ -73,12 +74,20 @@ const renewToken = async( req, resp = response ) =>{
  
 }
 const test = async( req, resp = response ) =>{
-   const rows = await getConnection.query('select * from usuarios');
-   resp.json({ 
-      ok: true,
-      users: rows,
-      msg: 'test ok!!'
+   const rows = await getConnection.query('select * from usuarios where id=? AND n_acceso=?', [8,5])
+   .then( (rows) => { 
+      resp.json({ 
+         ok: true,
+         users: rows,
+         msg: 'test ok!!'
+      });
+   }).catch( err=>{ 
+      return resp.status(404).json({
+         ok: false,
+         msg: 'error con la DB.'
+      });
    });
+    
 }
 module.exports = {
    getLogin,
