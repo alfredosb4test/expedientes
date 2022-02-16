@@ -144,6 +144,59 @@ const addCatLeg = (req, resp = response ) =>{
       });
    }
 }
+const editCatLeg = (req, resp = response ) =>{
+   const { categoria, activo, id_cl } = req.body;
+
+   $sql="UPDATE categoria_legislativo SET categoria=?, activo=? WHERE id_cl=?";
+ 
+   try{  
+      const result = getConnection.query($sql, [categoria, activo, id_cl])
+      .then( async (rows) => {
+         if( !rows ){
+            return resp.status(404).json({
+               ok: false,
+               msg: 'Sin registros'
+            });
+         }
+         resp.json({ 
+            ok: true,
+            insert: rows,
+         });
+      });
+   }catch( error ){
+      return resp.status(404).json({
+         ok: false,
+         msg: 'error con la BD.'
+      });
+   }
+}
+
+const editCatMix = (req, resp = response ) =>{
+   const { nombre, visible, id_categoria_mixto } = req.body;
+
+   $sql="UPDATE categoria_mixto SET nombre=?, visible=? WHERE id_categoria_mixto=?";
+ 
+   try{  
+      const result = getConnection.query($sql, [nombre, visible, id_categoria_mixto])
+      .then( async (rows) => {
+         if( !rows ){
+            return resp.status(404).json({
+               ok: false,
+               msg: 'Sin registros'
+            });
+         }
+         resp.json({ 
+            ok: true,
+            insert: rows,
+         });
+      });
+   }catch( error ){
+      return resp.status(404).json({
+         ok: false,
+         msg: 'error con la BD.'
+      });
+   }
+}
 const test = async( req, resp = response ) =>{
       resp.json({ 
          ok: true, 
@@ -155,5 +208,7 @@ module.exports = {
    addCatMix,
    getListLeg,
    addCatLeg,
+   editCatLeg,
+   editCatMix,
    test
 }
