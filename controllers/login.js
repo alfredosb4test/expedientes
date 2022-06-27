@@ -7,6 +7,7 @@ const getLogin = (req, resp = response ) =>{
 
    const { usuario, pwd } = req.body;  
    const pwwdMD5 = md5(pwd); 
+   console.log('pwwdMD5:', pwwdMD5 );
    try{  
       $sql = `select * from usuarios where usuario=? AND clave = ?`;
       const result = getConnection.query($sql, [usuario, pwwdMD5])

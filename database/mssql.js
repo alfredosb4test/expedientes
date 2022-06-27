@@ -3,6 +3,7 @@ const conf = require('./confing');
 
 async function query(sql, params) {
   const pool = await mysql.createPool(conf.db);
+  await pool.execute("SET lc_time_names = 'es_MX'");
   const [results, ] = await pool.query(sql, params);
   pool.end();
   return results;
@@ -18,6 +19,6 @@ async function execute(sql) {
 
 module.exports = {
   query,
-  execute
+  execute 
 }
  
